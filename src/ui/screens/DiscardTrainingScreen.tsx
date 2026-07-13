@@ -1,14 +1,25 @@
 import { ROUND_MAX_DRAWS } from '../../engine/constants'
+import { analyzeHandBeforeDiscard } from '../../explain/analyzeHand'
 import { DiscardFeedbackPanel } from '../components/DiscardFeedbackPanel'
 import { Hand } from '../components/Hand'
+import { HandAnalysisPanel } from '../components/HandAnalysisPanel'
 import { NewRoundButton } from '../components/NewRoundButton'
 import { RoundSummaryModal } from '../components/RoundSummaryModal'
 import { useTrainingRound } from '../hooks/useTrainingRound'
 import styles from './DiscardTrainingScreen.module.css'
 
 export function DiscardTrainingScreen() {
-  const { state, phase, lastExplanation, stats, draw, discard, proceedAfterFeedback, newRound } =
-    useTrainingRound()
+  const {
+    state,
+    phase,
+    pendingEvaluations,
+    lastExplanation,
+    stats,
+    draw,
+    discard,
+    proceedAfterFeedback,
+    newRound,
+  } = useTrainingRound()
 
   return (
     <div className={styles.screen}>
@@ -35,8 +46,9 @@ export function DiscardTrainingScreen() {
           </div>
         )}
 
-        {phase === 'awaiting-discard' && (
+        {phase === 'awaiting-discard' && pendingEvaluations && (
           <div className={styles.discardPanel}>
+            <HandAnalysisPanel analysis={analyzeHandBeforeDiscard(state.hand, pendingEvaluations)} />
             <p className={styles.instruction}>
               摸到了一張新牌（虛線右側），點選要打出的牌。
             </p>

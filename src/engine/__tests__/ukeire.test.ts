@@ -3,7 +3,7 @@ import { computeUkeire } from '../ukeire'
 import { makeCounts, m, p, s } from './testHelpers'
 
 describe('computeUkeire', () => {
-  it('已完整胡牌時沒有进張', () => {
+  it('已完整胡牌時沒有進張', () => {
     const hand = makeCounts([
       m(1), m(2), m(3),
       m(4), m(5), m(6),

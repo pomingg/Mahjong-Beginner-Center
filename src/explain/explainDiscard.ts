@@ -7,13 +7,13 @@ export interface DiscardExplanation {
   detail: string
 }
 
-function shantenToText(shanten: number): string {
+export function shantenToText(shanten: number): string {
   if (shanten === -1) return '已經胡牌'
   if (shanten === 0) return '已經聽牌'
   return `還差 ${shanten} 向聽`
 }
 
-function formatUkeireList(tiles: UkeireTile[]): string {
+export function formatUkeireList(tiles: UkeireTile[]): string {
   if (tiles.length === 0) return '無'
   return tiles.map((t) => `${getTileLabel(t.kind)}(${t.remaining}張)`).join('、')
 }
@@ -38,7 +38,7 @@ export function explainDiscard(
     return {
       isOptimal: true,
       headline: `打出「${chosenLabel}」就是最佳選擇！`,
-      detail: `${chosenShantenText}，进張：${formatUkeireList(chosen.ukeire.tiles)}（共 ${chosen.ukeire.totalRemaining} 張）。`,
+      detail: `${chosenShantenText}，進張：${formatUkeireList(chosen.ukeire.tiles)}（共 ${chosen.ukeire.totalRemaining} 張）。`,
     }
   }
 
@@ -50,7 +50,7 @@ export function explainDiscard(
     return {
       isOptimal: false,
       headline: `打出「${chosenLabel}」會讓向聽數變差。`,
-      detail: `打這張之後${chosenShantenText}；改打「${bestLabel}」可以維持在${bestShantenText}，进張：${formatUkeireList(best.ukeire.tiles)}（共 ${best.ukeire.totalRemaining} 張）。`,
+      detail: `打這張之後${chosenShantenText}；改打「${bestLabel}」可以維持在${bestShantenText}，進張：${formatUkeireList(best.ukeire.tiles)}（共 ${best.ukeire.totalRemaining} 張）。`,
     }
   }
 
@@ -58,6 +58,6 @@ export function explainDiscard(
   return {
     isOptimal: false,
     headline: `打出「${chosenLabel}」不是最寬的選擇。`,
-    detail: `${chosenShantenText}，进張：${formatUkeireList(chosen.ukeire.tiles)}（共 ${chosen.ukeire.totalRemaining} 張）；改打「${bestLabel}」向聽數相同，但进張多 ${remainingDiff} 張（共 ${best.ukeire.totalRemaining} 張），聽的範圍更廣。`,
+    detail: `${chosenShantenText}，進張：${formatUkeireList(chosen.ukeire.tiles)}（共 ${chosen.ukeire.totalRemaining} 張）；改打「${bestLabel}」向聽數相同，但進張多 ${remainingDiff} 張（共 ${best.ukeire.totalRemaining} 張），聽的範圍更廣。`,
   }
 }

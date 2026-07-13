@@ -4,7 +4,7 @@ import { addTile } from './tiles'
 import type { HandCounts, UkeireResult } from './types'
 
 /**
- * 計算手牌的进張：向聽數為 S 時，找出所有「摸到後向聽數會降到 S-1」的牌種，
+ * 計算手牌的進張：向聽數為 S 時，找出所有「摸到後向聽數會降到 S-1」的牌種，
  * 並標註剩餘張數（MVP 沒有其他玩家的資訊，只能用 4 減去手牌中已有的張數）。
  */
 export function computeUkeire(hand: HandCounts): UkeireResult {

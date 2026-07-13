@@ -30,7 +30,7 @@ describe('evaluateAllDiscards', () => {
     expect(breakingMeld!.ukeire.shanten).toBeGreaterThan(best.ukeire.shanten)
   })
 
-  it('結果按向聽數升冪、进張張數降冪排序', () => {
+  it('結果按向聽數升冪、進張張數降冪排序', () => {
     const hand = makeCounts([
       m(1), m(2), m(3),
       m(4), m(5), m(6),
