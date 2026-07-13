@@ -1,0 +1,71 @@
+.tile {
+  display: inline-block;
+  width: 44px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  line-height: 0;
+}
+
+.svg {
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 2px 1px rgba(0, 0, 0, 0.2));
+}
+
+.face {
+  fill: var(--color-tile-bg);
+  stroke: var(--color-tile-border);
+  stroke-width: 2;
+}
+
+.mainGlyph {
+  font-size: 24px;
+  font-weight: 700;
+  font-family: 'Noto Sans TC', sans-serif;
+}
+
+.suitGlyph {
+  font-size: 14px;
+  font-weight: 500;
+  font-family: 'Noto Sans TC', sans-serif;
+  fill: var(--color-text-muted);
+}
+
+.man .mainGlyph {
+  fill: var(--color-man);
+}
+
+.pin .mainGlyph {
+  fill: var(--color-pin);
+}
+
+.tiao .mainGlyph {
+  fill: var(--color-tiao);
+}
+
+.honor .mainGlyph {
+  fill: var(--color-honor);
+}
+
+.clickable {
+  cursor: pointer;
+  transition: transform 0.1s ease;
+}
+
+.clickable:hover .svg {
+  transform: translateY(-4px);
+}
+
+.clickable:active .svg {
+  transform: translateY(-1px);
+}
+
+.highlighted .face {
+  stroke: var(--color-accent);
+  stroke-width: 3;
+}
+
+.disabled {
+  opacity: 0.5;
+}
