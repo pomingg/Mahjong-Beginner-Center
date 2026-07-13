@@ -39,7 +39,7 @@ describe('explainDiscard', () => {
     expect(explanation.detail).toContain(getTileLabel(best.discard))
   })
 
-  it('向聽數相同但进張較窄時，標題提示不是最寬的選擇', () => {
+  it('向聽數相同但進張較窄時，標題提示不是最寬的選擇', () => {
     const wide: DiscardEvaluation = {
       discard: E,
       resultingHand: sampleHand(),
