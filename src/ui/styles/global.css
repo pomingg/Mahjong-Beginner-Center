@@ -1,0 +1,19 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family:
+    'Noto Sans TC', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  background: #f5f0e6;
+  color: #2b2b2b;
+}
