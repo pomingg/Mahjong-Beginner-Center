@@ -1,1 +1,1 @@
-# -Mahjong-Beginner-Center
+# Mahjong-Beginner-Center
