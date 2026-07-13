@@ -77,7 +77,10 @@ export function useTrainingRound() {
   const stats = useMemo(() => {
     const totalTurns = state.history.length
     const optimalTurns = state.history.filter((t) => t.wasOptimal).length
-    return { totalTurns, optimalTurns }
+    // 維持住向聽（含最佳）視為合格的一手；只有真正退向聽才算失誤
+    const keptTurns = state.history.filter((t) => t.keptShanten).length
+    const regressedTurns = totalTurns - keptTurns
+    return { totalTurns, optimalTurns, keptTurns, regressedTurns }
   }, [state.history])
 
   return {

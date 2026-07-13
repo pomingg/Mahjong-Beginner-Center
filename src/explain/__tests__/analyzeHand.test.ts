@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { evaluateAllDiscards } from '../../engine/discardEvaluator'
 import { computeShanten } from '../../engine/shanten'
 import { C, E, S, makeCounts, m, p, s } from '../../engine/__tests__/testHelpers'
-import { analyzeHandBeforeDiscard } from '../analyzeHand'
+import { analyzeHandBeforeDiscard, suggestedDiscardKinds } from '../analyzeHand'
 
 describe('analyzeHandBeforeDiscard', () => {
   it('聽牌 + 唯一孤張候選：文字涵蓋效率、優先順序、孤張三層心法', () => {
@@ -68,12 +68,28 @@ describe('analyzeHandBeforeDiscard', () => {
 
     expect(text).toContain('七條')
     expect(text).toContain('四條')
-    expect(text).toContain('更寬')
+    expect(text).toContain('最寬')
     // 最終的孤張捨棄建議應該點名七條，而不是進張較窄的四條
     const sentences = text.split('。').filter(Boolean)
     const isolatedSentence = sentences[sentences.length - 1]
     expect(isolatedSentence).toContain('七條')
     expect(isolatedSentence).not.toContain('四條')
+  })
+
+  it('會點名已成形的面子（讀出好牌型，而不只是要丟什麼）', () => {
+    const hand = makeCounts([
+      m(1), m(2), m(3),
+      m(4), m(5), m(6),
+      m(7), m(8), m(9),
+      p(1), p(2), p(3),
+      s(1), s(1),
+      E, S, C,
+    ])
+    const text = analyzeHandBeforeDiscard(hand, evaluateAllDiscards(hand))
+    // 三組萬子順子與筒子順子應該被具體點名出來
+    expect(text).toContain('面子')
+    expect(text).toContain('123萬')
+    expect(text).toContain('123筒')
   })
 
   it('已完整胡牌時直接短路回傳，不會噴錯', () => {
@@ -104,5 +120,19 @@ describe('analyzeHandBeforeDiscard', () => {
     ])
     const evaluations = evaluateAllDiscards(hand)
     expect(computeShanten(hand)).toBe(evaluations[0].ukeire.shanten)
+  })
+
+  it('suggestedDiscardKinds 只回傳「不影響向聽與進張」的孤張候選', () => {
+    const hand = makeCounts([
+      m(1), m(2), m(3),
+      m(4), m(5), m(6),
+      m(7), m(8), m(9),
+      p(1), p(2), p(3),
+      s(1), s(1),
+      E, S, C,
+    ])
+    const evaluations = evaluateAllDiscards(hand)
+    const kinds = suggestedDiscardKinds(evaluations).sort((a, b) => a - b)
+    expect(kinds).toEqual([E, S, C].sort((a, b) => a - b))
   })
 })

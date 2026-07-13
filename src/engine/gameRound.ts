@@ -64,6 +64,7 @@ export function discardTile(state: RoundState, discard: TileKind): RoundState {
     wasOptimal:
       chosen.ukeire.shanten === best.ukeire.shanten &&
       chosen.ukeire.totalRemaining === best.ukeire.totalRemaining,
+    keptShanten: chosen.ukeire.shanten === best.ukeire.shanten,
   }
 
   const hand = removeTile(state.hand, discard)

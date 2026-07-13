@@ -13,9 +13,20 @@ export function shantenToText(shanten: number): string {
   return `還差 ${shanten} 向聽`
 }
 
-export function formatUkeireList(tiles: UkeireTile[]): string {
+/**
+ * 把進張牌種列成文字。種類太多時（早期分散的手牌動輒十幾種）只列前 maxKinds 種，
+ * 其餘用「…等 N 種」收尾，避免一長串念不完、也讓真正關鍵的少數進張凸顯出來。
+ */
+export function formatUkeireList(tiles: UkeireTile[], maxKinds = 6): string {
   if (tiles.length === 0) return '無'
-  return tiles.map((t) => `${getTileLabel(t.kind)}(${t.remaining}張)`).join('、')
+  if (tiles.length <= maxKinds) {
+    return tiles.map((t) => `${getTileLabel(t.kind)}(${t.remaining}張)`).join('、')
+  }
+  const shown = tiles
+    .slice(0, maxKinds)
+    .map((t) => `${getTileLabel(t.kind)}(${t.remaining}張)`)
+    .join('、')
+  return `${shown}…等 ${tiles.length} 種`
 }
 
 /**

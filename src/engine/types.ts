@@ -37,7 +37,10 @@ export interface TurnRecord {
   drawnTile: TileKind
   discard: TileKind
   evaluations: DiscardEvaluation[]
+  /** 向聽與進張都與最佳解一致（最理想的一手） */
   wasOptimal: boolean
+  /** 至少維持住最佳向聽數（沒有讓牌型退步），即使進張略窄也算合格 */
+  keptShanten: boolean
 }
 
 export interface RoundState {
