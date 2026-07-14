@@ -1,7 +1,7 @@
-import { readHandStructure, type HandShape } from '../engine/handStructure'
+import { analyzeHandBranches, type TileClusterAnalysis } from '../engine/handBranches'
 import { computeShanten } from '../engine/shanten'
-import { getTileGroupLabel, getTileLabel } from '../engine/tileLabels'
-import type { DiscardEvaluation, HandCounts, TileKind, UkeireTile } from '../engine/types'
+import { getTileLabel } from '../engine/tileLabels'
+import type { DiscardEvaluation, HandCounts, TileKind } from '../engine/types'
 
 const MAX_NAMED_TILES = 4
 
@@ -10,44 +10,25 @@ function formatTileLabels(kinds: TileKind[]): string {
   return `${kinds.slice(0, MAX_NAMED_TILES).map(getTileLabel).join('、')}等 ${kinds.length} 張`
 }
 
-function joinGroups(labels: string[]): string {
-  if (labels.length <= MAX_NAMED_TILES) return labels.join('、')
-  return `${labels.slice(0, MAX_NAMED_TILES).join('、')}等 ${labels.length} 組`
+export interface ClusterSummary {
+  label: string
+  status: 'complete' | 'developing' | 'isolated'
+  branches: string[]
 }
 
-/** 把一組進張牌種講成口語的「摸到哪些牌」，種類太多時只列前幾種 */
-function speakTiles(tiles: UkeireTile[]): string {
-  if (tiles.length === 0) return '沒有'
-  const kinds = tiles.map((t) => t.kind)
-  const names = formatTileLabels(kinds)
-  const totalRemaining = tiles.reduce((sum, t) => sum + t.remaining, 0)
-  return `${names}，一共還有 ${totalRemaining} 張`
+export interface HandAnalysis {
+  progress: string
+  clusters: ClusterSummary[]
+  tensions: string[]
+  suggestion: string
 }
 
-/**
- * 描述手牌已經湊起來的部分，讓玩家先看到「哪些牌已經留得住」，
- * 不用日麻式的兩面/嵌張/邊張分類，只講具體的牌組成，貼近台灣桌上的講法。
- */
-function describeStructure(shape: HandShape): string {
-  const meldLabels = shape.melds.map((mld) => getTileGroupLabel(mld.tiles))
-  const nonEyeTaatsu = shape.taatsu.filter((t) => t !== shape.eye)
-  const taatsuLabels = nonEyeTaatsu.map((t) => getTileGroupLabel(t.tiles))
-
-  const parts: string[] = []
-  if (meldLabels.length > 0) {
-    parts.push(`${joinGroups(meldLabels)} 已經湊好了`)
+function clusterToSummary(cluster: TileClusterAnalysis): ClusterSummary {
+  return {
+    label: cluster.label,
+    status: cluster.status,
+    branches: cluster.branches.map((b) => b.description),
   }
-  if (taatsuLabels.length > 0) {
-    parts.push(`${joinGroups(taatsuLabels)} 也快湊成一組`)
-  }
-  if (shape.eye) {
-    parts.push(`${getTileGroupLabel(shape.eye.tiles)} 這對可以留著當最後那一對`)
-  }
-
-  if (parts.length === 0) {
-    return '手上的牌大多還兜不起來，先留住相鄰、同花色的牌，比較容易慢慢湊出一組。'
-  }
-  return `${parts.join('，')}。`
 }
 
 /**
@@ -67,62 +48,70 @@ export function suggestedDiscardKinds(evaluations: DiscardEvaluation[]): TileKin
 }
 
 /**
- * 在玩家出牌之前分析目前手牌，產生一段連貫、口語的教學文字：先講手上已經湊起來
- * 的牌，再講留哪張、丟哪張才能讓你更接近聽牌／胡牌，全程用「聽牌」當唯一的具體
- * 目標，不使用「向聽數」「進張」這類分析用語，也不使用兩面/嵌張/邊張等日麻式分類。
+ * 在玩家出牌之前分析目前手牌，產生結構化的教學分析：
+ * - progress：目前的聽牌進度
+ * - clusters：每一群牌的發展可能性
+ * - tensions：跨牌群之間的衝突（例如對子太多搶將）
+ * - suggestion：最終的出牌建議
+ *
+ * 全程用「聽牌」當唯一的具體目標，不使用「向聽數」「進張」這類分析用語。
  * evaluations 必須是 evaluateAllDiscards 排序過的結果（最佳解在最前面）。
  */
 export function analyzeHandBeforeDiscard(
   hand: HandCounts,
   evaluations: DiscardEvaluation[],
-): string {
+): HandAnalysis {
   const currentShanten = computeShanten(hand)
   if (currentShanten === -1) {
-    return '這副牌已經是可以胡的牌型了，不需要再煩惱怎麼取捨。'
+    return {
+      progress: '這副牌已經是可以胡的牌型了，不需要再煩惱怎麼取捨。',
+      clusters: [],
+      tensions: [],
+      suggestion: '',
+    }
   }
-  if (evaluations.length === 0) return ''
+  if (evaluations.length === 0) {
+    return { progress: '', clusters: [], tensions: [], suggestion: '' }
+  }
 
   const best = evaluations[0]
   const bestShanten = best.ukeire.shanten
   const bestTotal = best.ukeire.totalRemaining
   const bestLabel = getTileLabel(best.discard)
-  // 用「最佳出牌後」的 16 張手牌來讀結構，等於在展示理想取捨後要往哪個方向組
-  const shape = readHandStructure(best.resultingHand)
 
-  // 第一段：現在的進度 + 手上已經湊起來的牌
-  let opening: string
+  let progress: string
   if (currentShanten === 0) {
-    opening = `這手牌已經聽牌了！現在等 ${speakTiles(best.ukeire.tiles)}，摸到其中一張就能胡。`
+    const waitNames = best.ukeire.tiles.map((t) => getTileLabel(t.kind)).join('、')
+    const waitTotal = best.ukeire.tiles.reduce((s, t) => s + t.remaining, 0)
+    progress = `已經聽牌了！等 ${waitNames}，還有 ${waitTotal} 張機會，摸到就能胡。`
   } else {
-    opening = `這手牌大概還要換 ${currentShanten} 張牌才會聽牌。${describeStructure(shape)}`
+    progress = `大概還要換 ${currentShanten} 張牌才會聽牌。`
   }
 
-  // 第二段：留哪張、丟哪張比較好，以及為什麼
+  const branchAnalysis = analyzeHandBranches(hand)
+  const clusters = branchAnalysis.clusters.map(clusterToSummary)
+  const tensions = branchAnalysis.tensions.map((t) => t.description)
+
   const tiedByShanten = evaluations.filter((e) => e.ukeire.shanten === bestShanten)
-  let advice: string
+  const isolated = suggestedDiscardKinds(evaluations)
+  let suggestion: string
+
   if (tiedByShanten.length === 1) {
     if (evaluations.length > 1) {
-      advice = `這一步選擇很明確：只有丟「${bestLabel}」還能保住現在的進度，換丟別張都會離聽牌更遠。`
+      suggestion = `只有丟「${bestLabel}」能保住現在的進度，丟別張都會離聽牌更遠。`
     } else {
-      advice = `這手牌現在只有「${bestLabel}」這張可以丟，沒有其他選擇需要考慮。`
+      suggestion = `只有「${bestLabel}」這張可以丟。`
     }
+  } else if (isolated.length <= 1) {
+    suggestion = `建議先丟「${bestLabel}」，丟了不影響聽牌進度和機會。`
   } else {
     const runnerUp = tiedByShanten[1]
     if (best.ukeire.totalRemaining > runnerUp.ukeire.totalRemaining) {
-      advice = `丟「${bestLabel}」或丟「${getTileLabel(runnerUp.discard)}」都能保住現在的進度，但丟「${bestLabel}」之後能用的牌比較多（${bestTotal} 張，另一個只有 ${runnerUp.ukeire.totalRemaining} 張）——選機會比較寬的那個，比較不會卡住。`
+      suggestion = `丟「${bestLabel}」或「${getTileLabel(runnerUp.discard)}」都可以，但丟「${bestLabel}」留下的機會比較寬（${bestTotal} 張 vs ${runnerUp.ukeire.totalRemaining} 張）。`
     } else {
-      advice = `有好幾張牌丟了都一樣，不會讓進度變差、機會也不會變窄，差別只在於它們是不是真正沒用的孤張。`
+      suggestion = `「${formatTileLabels(isolated)}」丟哪張都一樣，不影響進度，看安全或台數需求決定。`
     }
   }
 
-  // 第三段：孤張取捨原則
-  const isolated = suggestedDiscardKinds(evaluations)
-  let cutAdvice: string
-  if (isolated.length <= 1) {
-    cutAdvice = `現在最適合先丟的是「${bestLabel}」，丟了它不會讓聽牌進度或機會變差，是這手牌裡最沒用的孤張。`
-  } else {
-    cutAdvice = `「${formatTileLabels(isolated)}」這幾張現在丟哪張都一樣，都是這手牌裡沒用的孤張，可以優先考慮丟掉，實際丟哪張再看安全或台數需求。`
-  }
-
-  return `${opening}${advice}${cutAdvice}`
+  return { progress, clusters, tensions, suggestion }
 }
