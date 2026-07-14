@@ -1,8 +1,7 @@
-import { readHandStructure, type HandShape, type Taatsu } from '../engine/handStructure'
+import { readHandStructure, type HandShape } from '../engine/handStructure'
 import { computeShanten } from '../engine/shanten'
 import { getTileGroupLabel, getTileLabel } from '../engine/tileLabels'
-import type { DiscardEvaluation, HandCounts, TileKind } from '../engine/types'
-import { formatUkeireList, shantenToText } from './explainDiscard'
+import type { DiscardEvaluation, HandCounts, TileKind, UkeireTile } from '../engine/types'
 
 const MAX_NAMED_TILES = 4
 
@@ -11,54 +10,49 @@ function formatTileLabels(kinds: TileKind[]): string {
   return `${kinds.slice(0, MAX_NAMED_TILES).map(getTileLabel).join('、')}等 ${kinds.length} 張`
 }
 
-function taatsuTypeName(kind: Taatsu['kind']): string {
-  switch (kind) {
-    case 'ryanmen':
-      return '兩面'
-    case 'kanchan':
-      return '嵌張'
-    case 'penchan':
-      return '邊張'
-    case 'pair':
-      return '對子'
-  }
-}
-
 function joinGroups(labels: string[]): string {
   if (labels.length <= MAX_NAMED_TILES) return labels.join('、')
   return `${labels.slice(0, MAX_NAMED_TILES).join('、')}等 ${labels.length} 組`
 }
 
-/** 描述手牌已成形的面子與搭子，讓玩家看到「已經組好的好牌型」而不只是要丟什麼 */
-function describeStructure(shape: HandShape): string {
-  const meldLabels = shape.melds.map((mld) => getTileGroupLabel(mld.tiles))
-  // 將眼另外講，非將眼的搭子才列進「搭子」
-  const nonEyeTaatsu = shape.taatsu.filter((t) => t !== shape.eye)
-  const taatsuLabels = nonEyeTaatsu.map(
-    (t) => `${getTileGroupLabel(t.tiles)}(${taatsuTypeName(t.kind)})`,
-  )
-
-  const parts: string[] = []
-  if (meldLabels.length > 0) {
-    parts.push(`已經組好 ${meldLabels.length} 組面子（${joinGroups(meldLabels)}）`)
-  }
-  if (taatsuLabels.length > 0) {
-    const lead = meldLabels.length > 0 ? '另外還有' : '目前有'
-    parts.push(`${lead} ${taatsuLabels.length} 組搭子在等牌（${joinGroups(taatsuLabels)}）`)
-  }
-  if (shape.eye) {
-    parts.push(`其中 ${getTileGroupLabel(shape.eye.tiles)} 可以留著當將眼`)
-  }
-
-  if (parts.length === 0) {
-    return '目前還沒有成形的面子或搭子，整手偏零散，先從留下相鄰、同花色的牌開始慢慢搭架子'
-  }
-  return parts.join('，')
+/** 把一組進張牌種講成口語的「摸到哪些牌」，種類太多時只列前幾種 */
+function speakTiles(tiles: UkeireTile[]): string {
+  if (tiles.length === 0) return '沒有'
+  const kinds = tiles.map((t) => t.kind)
+  const names = formatTileLabels(kinds)
+  const totalRemaining = tiles.reduce((sum, t) => sum + t.remaining, 0)
+  return `${names}，一共還有 ${totalRemaining} 張`
 }
 
 /**
- * 找出「打了之後向聽數與進張都不會變差」的出牌選項——這些牌對牌型沒有貢獻，
- * 是最適合優先捨棄的孤張。回傳牌種供分析文字點名，也供 UI 在手牌上高亮。
+ * 描述手牌已經湊起來的部分，讓玩家先看到「哪些牌已經留得住」，
+ * 不用日麻式的兩面/嵌張/邊張分類，只講具體的牌組成，貼近台灣桌上的講法。
+ */
+function describeStructure(shape: HandShape): string {
+  const meldLabels = shape.melds.map((mld) => getTileGroupLabel(mld.tiles))
+  const nonEyeTaatsu = shape.taatsu.filter((t) => t !== shape.eye)
+  const taatsuLabels = nonEyeTaatsu.map((t) => getTileGroupLabel(t.tiles))
+
+  const parts: string[] = []
+  if (meldLabels.length > 0) {
+    parts.push(`${joinGroups(meldLabels)} 已經湊好了`)
+  }
+  if (taatsuLabels.length > 0) {
+    parts.push(`${joinGroups(taatsuLabels)} 也快湊成一組`)
+  }
+  if (shape.eye) {
+    parts.push(`${getTileGroupLabel(shape.eye.tiles)} 這對可以留著當最後那一對`)
+  }
+
+  if (parts.length === 0) {
+    return '手上的牌大多還兜不起來，先留住相鄰、同花色的牌，比較容易慢慢湊出一組。'
+  }
+  return `${parts.join('，')}。`
+}
+
+/**
+ * 找出「丟了之後，聽牌進度跟能用的牌都不會變差」的出牌選項——這些牌留著沒有幫助，
+ * 是最適合優先丟的孤張。回傳牌種供分析文字點名，也供 UI 在手牌上高亮。
  */
 export function suggestedDiscardKinds(evaluations: DiscardEvaluation[]): TileKind[] {
   if (evaluations.length === 0) return []
@@ -73,8 +67,9 @@ export function suggestedDiscardKinds(evaluations: DiscardEvaluation[]): TileKin
 }
 
 /**
- * 在玩家出牌之前，用向聽數/進張數據 + 牌型結構分析目前手牌，產生一段連貫的教學文字，
- * 依序涵蓋牌型效率與已成形結構、取捨優先順序、孤張取捨原則三層心法。
+ * 在玩家出牌之前分析目前手牌，產生一段連貫、口語的教學文字：先講手上已經湊起來
+ * 的牌，再講留哪張、丟哪張才能讓你更接近聽牌／胡牌，全程用「聽牌」當唯一的具體
+ * 目標，不使用「向聽數」「進張」這類分析用語，也不使用兩面/嵌張/邊張等日麻式分類。
  * evaluations 必須是 evaluateAllDiscards 排序過的結果（最佳解在最前面）。
  */
 export function analyzeHandBeforeDiscard(
@@ -94,47 +89,40 @@ export function analyzeHandBeforeDiscard(
   // 用「最佳出牌後」的 16 張手牌來讀結構，等於在展示理想取捨後要往哪個方向組
   const shape = readHandStructure(best.resultingHand)
 
-  // Layer 1：效率判斷 + 已成形結構
-  let layer1: string
+  // 第一段：現在的進度 + 手上已經湊起來的牌
+  let opening: string
   if (currentShanten === 0) {
-    layer1 = `這手牌已經聽牌了！只等 ${formatUkeireList(best.ukeire.tiles)}（共 ${bestTotal} 張）就能胡，現有的面子和搭子都已經到位。`
+    opening = `這手牌已經聽牌了！現在等 ${speakTiles(best.ukeire.tiles)}，摸到其中一張就能胡。`
   } else {
-    const progress =
-      currentShanten === 1
-        ? '再一步就能聽牌'
-        : currentShanten === 2
-          ? '再兩步左右就能聽牌'
-          : '距離聽牌還有一段路'
-    layer1 = `這手牌目前${shantenToText(currentShanten)}，${progress}。${describeStructure(shape)}。`
+    opening = `這手牌大概還要換 ${currentShanten} 張牌才會聽牌。${describeStructure(shape)}`
   }
 
-  // Layer 2：取捨優先順序
+  // 第二段：留哪張、丟哪張比較好，以及為什麼
   const tiedByShanten = evaluations.filter((e) => e.ukeire.shanten === bestShanten)
-  let layer2: string
+  let advice: string
   if (tiedByShanten.length === 1) {
     if (evaluations.length > 1) {
-      const runnerUp = evaluations[1]
-      layer2 = `在能打的牌裡，只有打「${bestLabel}」能維持在${shantenToText(bestShanten)}；換打別張，向聽數就會退到${shantenToText(runnerUp.ukeire.shanten)}，所以這步很明確。`
+      advice = `這一步選擇很明確：只有丟「${bestLabel}」還能保住現在的進度，換丟別張都會離聽牌更遠。`
     } else {
-      layer2 = `這手牌目前只有「${bestLabel}」這張可以打，沒有其他取捨需要考慮。`
+      advice = `這手牌現在只有「${bestLabel}」這張可以丟，沒有其他選擇需要考慮。`
     }
   } else {
     const runnerUp = tiedByShanten[1]
     if (best.ukeire.totalRemaining > runnerUp.ukeire.totalRemaining) {
-      layer2 = `能維持${shantenToText(bestShanten)}的打法不只一種，但打「${bestLabel}」的進張最寬（共 ${bestTotal} 張），比打「${getTileLabel(runnerUp.discard)}」（共 ${runnerUp.ukeire.totalRemaining} 張）更好——向聽相同時，進張越寬越有利。`
+      advice = `丟「${bestLabel}」或丟「${getTileLabel(runnerUp.discard)}」都能保住現在的進度，但丟「${bestLabel}」之後能用的牌比較多（${bestTotal} 張，另一個只有 ${runnerUp.ukeire.totalRemaining} 張）——選機會比較寬的那個，比較不會卡住。`
     } else {
-      layer2 = `有好幾種打法都能維持${shantenToText(bestShanten)}、進張也一樣寬，這幾張是等價的選擇，看的是它們是不是真正沒效率的孤張。`
+      advice = `有好幾張牌丟了都一樣，不會讓進度變差、機會也不會變窄，差別只在於它們是不是真正沒用的孤張。`
     }
   }
 
-  // Layer 3：孤張取捨原則
+  // 第三段：孤張取捨原則
   const isolated = suggestedDiscardKinds(evaluations)
-  let layer3: string
+  let cutAdvice: string
   if (isolated.length <= 1) {
-    layer3 = `現在最適合先捨的是「${bestLabel}」，它留著不會讓向聽或進張變好，是貢獻最小的孤張。`
+    cutAdvice = `現在最適合先丟的是「${bestLabel}」，丟了它不會讓聽牌進度或機會變差，是這手牌裡最沒用的孤張。`
   } else {
-    layer3 = `「${formatTileLabels(isolated)}」都是可以先捨的孤張——打哪張牌型都不會變差，實際上打哪張再看安全或役種需求。`
+    cutAdvice = `「${formatTileLabels(isolated)}」這幾張現在丟哪張都一樣，都是這手牌裡沒用的孤張，可以優先考慮丟掉，實際丟哪張再看安全或台數需求。`
   }
 
-  return layer1 + layer2 + layer3
+  return `${opening}${advice}${cutAdvice}`
 }

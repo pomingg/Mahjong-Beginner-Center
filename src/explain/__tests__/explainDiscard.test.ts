@@ -54,6 +54,20 @@ describe('explainDiscard', () => {
 
     const explanation = explainDiscard(narrow, results)
     expect(explanation.isOptimal).toBe(false)
-    expect(explanation.headline).toContain('不是最寬')
+    expect(explanation.headline).toContain('不是機會最寬')
+  })
+
+  it('文字不使用「向聽」「進張」這類分析用語，改用聽牌/口語描述', () => {
+    const results = evaluateAllDiscards(sampleHand())
+    const best = results[0]
+    const worst = results[results.length - 1]
+
+    const optimalText = explainDiscard(best, results)
+    const worseText = explainDiscard(worst, results)
+
+    for (const text of [optimalText.headline, optimalText.detail, worseText.headline, worseText.detail]) {
+      expect(text).not.toContain('向聽')
+      expect(text).not.toContain('進張')
+    }
   })
 })
