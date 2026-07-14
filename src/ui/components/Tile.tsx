@@ -8,12 +8,21 @@ interface TileProps {
   onClick?: (kind: TileKind) => void
   highlighted?: boolean
   disabled?: boolean
+  /** 標示為「建議優先捨棄的孤張」，在牌外圍加上柔和提示環 */
+  suggested?: boolean
 }
 
-export function Tile({ kind, onClick, highlighted = false, disabled = false }: TileProps) {
+export function Tile({
+  kind,
+  onClick,
+  highlighted = false,
+  disabled = false,
+  suggested = false,
+}: TileProps) {
   const { main, suitMark } = getTileGlyph(kind)
   const suit = kindToSuit(kind)
   const label = getTileLabel(kind)
+  const ariaLabel = suggested ? `${label}（建議捨）` : label
 
   const face = (
     <svg viewBox="0 0 48 64" className={styles.svg} aria-hidden="true">
@@ -31,13 +40,18 @@ export function Tile({ kind, onClick, highlighted = false, disabled = false }: T
     </svg>
   )
 
-  const classNames = [styles.tile, highlighted ? styles.highlighted : '', disabled ? styles.disabled : '']
+  const classNames = [
+    styles.tile,
+    highlighted ? styles.highlighted : '',
+    disabled ? styles.disabled : '',
+    suggested ? styles.suggested : '',
+  ]
     .filter(Boolean)
     .join(' ')
 
   if (!onClick || disabled) {
     return (
-      <div className={classNames} role="img" aria-label={label}>
+      <div className={classNames} role="img" aria-label={ariaLabel}>
         {face}
       </div>
     )
@@ -48,7 +62,7 @@ export function Tile({ kind, onClick, highlighted = false, disabled = false }: T
       type="button"
       className={`${classNames} ${styles.clickable}`}
       onClick={() => onClick(kind)}
-      aria-label={`打出${label}`}
+      aria-label={`打出${ariaLabel}`}
     >
       {face}
     </button>

@@ -1,5 +1,5 @@
 import { ROUND_MAX_DRAWS } from '../../engine/constants'
-import { analyzeHandBeforeDiscard } from '../../explain/analyzeHand'
+import { analyzeHandBeforeDiscard, suggestedDiscardKinds } from '../../explain/analyzeHand'
 import { DiscardFeedbackPanel } from '../components/DiscardFeedbackPanel'
 import { Hand } from '../components/Hand'
 import { HandAnalysisPanel } from '../components/HandAnalysisPanel'
@@ -51,8 +51,14 @@ export function DiscardTrainingScreen() {
             <HandAnalysisPanel analysis={analyzeHandBeforeDiscard(state.hand, pendingEvaluations)} />
             <p className={styles.instruction}>
               摸到了一張新牌（虛線右側），點選要打出的牌。
+              <span className={styles.legend}>圈起來的是建議優先捨棄的孤張</span>
             </p>
-            <Hand hand={state.hand} drawnTile={state.drawnTile} onDiscard={discard} />
+            <Hand
+              hand={state.hand}
+              drawnTile={state.drawnTile}
+              onDiscard={discard}
+              suggestedKinds={suggestedDiscardKinds(pendingEvaluations)}
+            />
           </div>
         )}
 
@@ -70,6 +76,8 @@ export function DiscardTrainingScreen() {
           status={state.status}
           totalTurns={stats.totalTurns}
           optimalTurns={stats.optimalTurns}
+          keptTurns={stats.keptTurns}
+          regressedTurns={stats.regressedTurns}
           onNewRound={newRound}
         />
       )}
