@@ -1,5 +1,5 @@
 import { ROUND_MAX_DRAWS } from '../../engine/constants'
-import { analyzeHandBeforeDiscard, suggestedDiscardKinds } from '../../explain/analyzeHand'
+import { analyzeHandBeforeDiscard } from '../../explain/analyzeHand'
 import { DiscardFeedbackPanel } from '../components/DiscardFeedbackPanel'
 import { Hand } from '../components/Hand'
 import { HandAnalysisPanel } from '../components/HandAnalysisPanel'
@@ -46,21 +46,24 @@ export function DiscardTrainingScreen() {
           </div>
         )}
 
-        {phase === 'awaiting-discard' && pendingEvaluations && (
-          <div className={styles.discardPanel}>
-            <HandAnalysisPanel analysis={analyzeHandBeforeDiscard(state.hand, pendingEvaluations)} />
-            <p className={styles.instruction}>
-              摸到了一張新牌（虛線右側），點選要打出的牌。
-              <span className={styles.legend}>圈起來的是建議優先捨棄的孤張</span>
-            </p>
-            <Hand
-              hand={state.hand}
-              drawnTile={state.drawnTile}
-              onDiscard={discard}
-              suggestedKinds={suggestedDiscardKinds(pendingEvaluations)}
-            />
-          </div>
-        )}
+        {phase === 'awaiting-discard' && pendingEvaluations && (() => {
+          const analysis = analyzeHandBeforeDiscard(state.hand, pendingEvaluations)
+          return (
+            <div className={styles.discardPanel}>
+              <HandAnalysisPanel analysis={analysis} />
+              <p className={styles.instruction}>
+                摸到了一張新牌（虛線右側），點選要打出的牌。
+                <span className={styles.legend}>圈起來的是建議優先捨棄的孤張</span>
+              </p>
+              <Hand
+                hand={state.hand}
+                drawnTile={state.drawnTile}
+                onDiscard={discard}
+                suggestedKinds={analysis.recommendedDiscards}
+              />
+            </div>
+          )
+        })()}
 
         {phase === 'feedback' && lastExplanation && (
           <DiscardFeedbackPanel

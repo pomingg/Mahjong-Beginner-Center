@@ -186,4 +186,38 @@ describe('analyzeHandBeforeDiscard', () => {
     expect(text).toContain('一萬')
     expect(text).toContain('四萬')
   })
+
+  it('recommendedDiscards 只包含真正孤張，不含有發展潛力的牌', () => {
+    // 2,3,4,6,8,8,9,9萬 | 4,9,9筒 | 1,2,4,8,9條 | 南
+    // 6萬 near 889萬 有潛力, 1條/4條 跟 2條 有關聯 → 不該被推薦丟
+    // 只有 4筒 和 南 是真正孤張
+    const hand = makeCounts([
+      m(2), m(3), m(4), m(6), m(8), m(8), m(9), m(9),
+      p(4), p(9), p(9),
+      s(1), s(2), s(4), s(8), s(9),
+      S,
+    ])
+    const result = analyzeHandBeforeDiscard(hand, evaluateAllDiscards(hand))
+
+    expect(result.recommendedDiscards).not.toContain(m(6))
+    expect(result.recommendedDiscards).not.toContain(s(1))
+    expect(result.recommendedDiscards).not.toContain(s(4))
+    expect(result.recommendedDiscards).toContain(p(4))
+    expect(result.recommendedDiscards).toContain(S)
+    expect(result.suggestion).toContain('孤張')
+    expect(result.suggestion).not.toContain('六萬')
+  })
+
+  it('已完整胡牌時 recommendedDiscards 為空', () => {
+    const winningHand = makeCounts([
+      m(1), m(2), m(3),
+      m(4), m(5), m(6),
+      m(7), m(8), m(9),
+      p(1), p(2), p(3),
+      s(1), s(1), s(1),
+      s(2), s(2),
+    ])
+    const result = analyzeHandBeforeDiscard(winningHand, [])
+    expect(result.recommendedDiscards).toEqual([])
+  })
 })

@@ -21,6 +21,7 @@ export interface HandAnalysis {
   clusters: ClusterSummary[]
   tensions: string[]
   suggestion: string
+  recommendedDiscards: TileKind[]
 }
 
 function clusterToSummary(cluster: TileClusterAnalysis): ClusterSummary {
@@ -68,10 +69,11 @@ export function analyzeHandBeforeDiscard(
       clusters: [],
       tensions: [],
       suggestion: '',
+      recommendedDiscards: [],
     }
   }
   if (evaluations.length === 0) {
-    return { progress: '', clusters: [], tensions: [], suggestion: '' }
+    return { progress: '', clusters: [], tensions: [], suggestion: '', recommendedDiscards: [] }
   }
 
   const best = evaluations[0]
@@ -93,7 +95,14 @@ export function analyzeHandBeforeDiscard(
   const tensions = branchAnalysis.tensions.map((t) => t.description)
 
   const tiedByShanten = evaluations.filter((e) => e.ukeire.shanten === bestShanten)
-  const isolated = suggestedDiscardKinds(evaluations)
+  const equivalentByNumbers = suggestedDiscardKinds(evaluations)
+
+  const trulyIsolated = equivalentByNumbers.filter((kind) => {
+    const cluster = branchAnalysis.clusters.find((c) => c.tiles.includes(kind))
+    return cluster && cluster.status === 'isolated'
+  })
+
+  const recommendedDiscards = trulyIsolated.length > 0 ? trulyIsolated : equivalentByNumbers
   let suggestion: string
 
   if (tiedByShanten.length === 1) {
@@ -102,16 +111,18 @@ export function analyzeHandBeforeDiscard(
     } else {
       suggestion = `只有「${bestLabel}」這張可以丟。`
     }
-  } else if (isolated.length <= 1) {
+  } else if (equivalentByNumbers.length <= 1) {
     suggestion = `建議先丟「${bestLabel}」，丟了不影響聽牌進度和機會。`
   } else {
     const runnerUp = tiedByShanten[1]
     if (best.ukeire.totalRemaining > runnerUp.ukeire.totalRemaining) {
       suggestion = `丟「${bestLabel}」或「${getTileLabel(runnerUp.discard)}」都可以，但丟「${bestLabel}」留下的機會比較寬（${bestTotal} 張 vs ${runnerUp.ukeire.totalRemaining} 張）。`
+    } else if (trulyIsolated.length > 0 && trulyIsolated.length < equivalentByNumbers.length) {
+      suggestion = `「${formatTileLabels(trulyIsolated)}」跟周圍的牌完全沒有關聯，是真正的孤張，優先丟掉不會犧牲任何發展機會。`
     } else {
-      suggestion = `「${formatTileLabels(isolated)}」丟哪張都一樣，不影響進度，看安全或台數需求決定。`
+      suggestion = `「${formatTileLabels(recommendedDiscards)}」丟哪張都一樣，不影響進度，看安全或台數需求決定。`
     }
   }
 
-  return { progress, clusters, tensions, suggestion }
+  return { progress, clusters, tensions, suggestion, recommendedDiscards }
 }
