@@ -1,0 +1,78 @@
+.screen {
+  min-height: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: var(--space-lg) var(--space-md) var(--space-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+}
+
+.title {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.subtitle {
+  margin: var(--space-xs) 0 0;
+  color: var(--color-text-muted);
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.idlePanel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.dealButton {
+  align-self: flex-start;
+  padding: var(--space-sm) var(--space-xl);
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--color-accent);
+  color: #fff;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.dealButton:hover {
+  filter: brightness(1.05);
+}
+
+.analysisPanel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.instruction {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.legend {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-left: var(--space-sm);
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+}

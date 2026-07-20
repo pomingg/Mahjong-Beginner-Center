@@ -1,0 +1,126 @@
+.panel {
+  padding: var(--space-md) var(--space-lg);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-alt);
+}
+
+.label {
+  margin: 0 0 var(--space-sm);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-accent);
+  letter-spacing: 0.05em;
+}
+
+.clusterSection {
+  margin-bottom: var(--space-md);
+}
+
+.clusterSection:last-child {
+  margin-bottom: 0;
+}
+
+.clusterTitle {
+  margin: 0 0 var(--space-sm);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.routeGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-sm);
+}
+
+.routeCard {
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-accent);
+  background: var(--color-surface);
+}
+
+.routeTitle {
+  margin: 0 0 var(--space-xs);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-accent);
+}
+
+.steps {
+  margin: 0 0 var(--space-xs);
+  padding-left: 0;
+  list-style: none;
+  font-size: 0.85rem;
+  color: var(--color-text);
+  line-height: 1.7;
+}
+
+.step {
+  margin: 2px 0;
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-xs);
+}
+
+.stepIcon {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+}
+
+.meldIcon {
+  color: var(--color-good);
+}
+
+.partialIcon {
+  color: var(--color-accent);
+}
+
+.pairIcon {
+  color: #7b5ea7;
+}
+
+.floaterIcon {
+  color: var(--color-text-muted);
+}
+
+.routeSummary {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  font-weight: 600;
+  padding-top: var(--space-xs);
+  border-top: 1px solid var(--color-border);
+}
+
+.comparison {
+  margin: var(--space-sm) 0 0;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  background: #eef4ff;
+  border: 1px solid #b8d4f0;
+  font-size: 0.85rem;
+  color: var(--color-text);
+  line-height: 1.6;
+}
+
+.pairTension {
+  margin: var(--space-md) 0 0;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  background: #fef3e1;
+  border: 1px solid #e8c87a;
+  font-size: 0.85rem;
+  color: var(--color-text);
+  line-height: 1.6;
+}
+
+.singleRoute .routeCard {
+  border-left-color: var(--color-good);
+}
+
+.singleRoute .routeTitle {
+  color: var(--color-good);
+}
