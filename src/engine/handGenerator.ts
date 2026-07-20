@@ -1,4 +1,5 @@
 import { CONCEALED_HAND_SIZE, MAX_COPIES_PER_KIND, TOTAL_KINDS } from './constants'
+import { computeShanten } from './shanten'
 import { createEmptyCounts } from './tiles'
 import type { TileKind } from './types'
 
@@ -38,4 +39,19 @@ export function dealNewRound(): DealResult {
   for (const kind of handTiles) hand[kind] += 1
 
   return { hand, wall }
+}
+
+const MAX_GENERATION_ATTEMPTS = 500
+
+/**
+ * 產生一副向聽數恰好等於 targetShanten 的手牌。
+ * 用 rejection sampling：隨機洗牌直到命中目標向聽數。
+ * 隨機 16 張手牌的向聽數通常在 3~6，所以 target 2~5 都很快。
+ */
+export function dealAtShanten(targetShanten: number): DealResult {
+  for (let i = 0; i < MAX_GENERATION_ATTEMPTS; i++) {
+    const deal = dealNewRound()
+    if (computeShanten(deal.hand) === targetShanten) return deal
+  }
+  return dealNewRound()
 }

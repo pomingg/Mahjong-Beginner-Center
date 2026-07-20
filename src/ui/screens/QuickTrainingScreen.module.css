@@ -1,0 +1,157 @@
+.screen {
+  min-height: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: var(--space-lg) var(--space-md) var(--space-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+}
+
+.title {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.subtitle {
+  margin: var(--space-xs) 0 0;
+  color: var(--color-text-muted);
+}
+
+.difficultyBar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+}
+
+.difficultyLabel {
+  font-weight: 600;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.difficultyButtons {
+  display: flex;
+  gap: var(--space-xs);
+}
+
+.difficultyBtn {
+  min-width: 44px;
+  padding: var(--space-xs) var(--space-md);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.difficultyBtn:hover {
+  border-color: var(--color-accent);
+}
+
+.difficultyBtn.active {
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 15%, var(--color-surface));
+  color: var(--color-accent);
+}
+
+.startPanel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-xl) 0;
+}
+
+.startHint {
+  margin: 0;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.startButton {
+  padding: var(--space-sm) var(--space-xl);
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--color-accent);
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.startButton:hover {
+  filter: brightness(1.05);
+}
+
+.statsBar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-alt);
+  font-size: 0.95rem;
+  color: var(--color-text-muted);
+}
+
+.statsBar strong {
+  color: var(--color-text);
+}
+
+.statDivider {
+  width: 1px;
+  height: 1em;
+  background: var(--color-border);
+}
+
+.streak {
+  margin-left: auto;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-good);
+  background: color-mix(in srgb, var(--color-good) 12%, transparent);
+}
+
+.questionPanel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.instruction {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.legend {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-left: var(--space-sm);
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+}
+
+.feedbackPanel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
