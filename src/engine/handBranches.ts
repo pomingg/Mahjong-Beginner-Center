@@ -42,7 +42,7 @@ function remaining(hand: HandCounts, kind: TileKind): number {
   return MAX_COPIES_PER_KIND - hand[kind]
 }
 
-function groupConnectedIndices(counts: number[]): number[][] {
+export function groupConnectedIndices(counts: number[]): number[][] {
   const groups: number[][] = []
   let i = 0
   while (i < counts.length) {
