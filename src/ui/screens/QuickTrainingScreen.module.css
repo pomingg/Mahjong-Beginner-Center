@@ -138,18 +138,6 @@
   color: var(--color-text-muted);
 }
 
-.legend {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-xs);
-  margin-left: var(--space-sm);
-  padding: 2px 10px;
-  border-radius: 999px;
-  font-size: 0.8rem;
-  color: var(--color-accent);
-  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
-}
-
 .feedbackPanel {
   display: flex;
   flex-direction: column;

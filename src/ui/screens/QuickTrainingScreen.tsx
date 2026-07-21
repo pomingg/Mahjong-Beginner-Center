@@ -1,4 +1,3 @@
-import { suggestedDiscardKinds } from '../../explain/analyzeHand'
 import { DiscardFeedbackPanel } from '../components/DiscardFeedbackPanel'
 import { Hand } from '../components/Hand'
 import { type Difficulty, useQuickTraining } from '../hooks/useQuickTraining'
@@ -12,8 +11,18 @@ const DIFFICULTY_OPTIONS: Array<{ value: Difficulty; label: string }> = [
 ]
 
 export function QuickTrainingScreen() {
-  const { question, phase, explanation, stats, difficulty, start, discard, next, changeDifficulty } =
-    useQuickTraining()
+  const {
+    question,
+    phase,
+    explanation,
+    discardedKind,
+    stats,
+    difficulty,
+    start,
+    discard,
+    next,
+    changeDifficulty,
+  } = useQuickTraining()
 
   return (
     <div className={styles.screen}>
@@ -75,21 +84,14 @@ export function QuickTrainingScreen() {
 
           {phase === 'choosing' && (
             <section className={styles.questionPanel}>
-              <p className={styles.instruction}>
-                摸到一張新牌（右側），選一張要打出的牌
-                <span className={styles.legend}>圈起來的牌是建議優先捨棄的</span>
-              </p>
-              <Hand
-                hand={question.hand}
-                drawnTile={question.drawnTile}
-                onDiscard={discard}
-                suggestedKinds={suggestedDiscardKinds(question.evaluations)}
-              />
+              <p className={styles.instruction}>摸到一張新牌（右側），選一張要打出的牌</p>
+              <Hand hand={question.hand} drawnTile={question.drawnTile} onDiscard={discard} />
             </section>
           )}
 
           {phase === 'feedback' && explanation && (
             <section className={styles.feedbackPanel}>
+              <Hand hand={question.hand} drawnTile={question.drawnTile} discardedKind={discardedKind} />
               <DiscardFeedbackPanel
                 explanation={explanation}
                 onContinue={next}

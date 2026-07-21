@@ -74,3 +74,12 @@
 .disabled {
   opacity: 0.5;
 }
+
+.discarded .face {
+  stroke: var(--color-bad);
+  stroke-width: 3;
+}
+
+.discarded .svg {
+  opacity: 0.55;
+}

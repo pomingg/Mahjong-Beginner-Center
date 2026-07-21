@@ -34,6 +34,7 @@ export function useQuickTraining() {
   const [difficulty, setDifficulty] = useState<Difficulty>('intermediate')
   const [question, setQuestion] = useState<Question | null>(null)
   const [explanation, setExplanation] = useState<DiscardExplanation | null>(null)
+  const [discardedKind, setDiscardedKind] = useState<TileKind | null>(null)
   const [stats, setStats] = useState<Stats>({ total: 0, optimal: 0, kept: 0, streak: 0 })
 
   const deal = useCallback((diff: Difficulty) => {
@@ -47,6 +48,7 @@ export function useQuickTraining() {
     const shanten = computeShanten(hand)
     setQuestion({ hand, drawnTile, shanten, evaluations: result.evaluations })
     setExplanation(null)
+    setDiscardedKind(null)
   }, [])
 
   const start = useCallback(() => {
@@ -63,6 +65,7 @@ export function useQuickTraining() {
       const best = question.evaluations[0]
       const exp = explainDiscard(chosen, question.evaluations)
       setExplanation(exp)
+      setDiscardedKind(kind)
 
       const isOptimal =
         chosen.ukeire.shanten === best.ukeire.shanten &&
@@ -103,6 +106,7 @@ export function useQuickTraining() {
     question,
     phase,
     explanation,
+    discardedKind,
     stats,
     difficulty,
     start,
