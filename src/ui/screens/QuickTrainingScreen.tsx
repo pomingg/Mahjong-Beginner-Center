@@ -1,14 +1,14 @@
 import { suggestedDiscardKinds } from '../../explain/analyzeHand'
 import { DiscardFeedbackPanel } from '../components/DiscardFeedbackPanel'
 import { Hand } from '../components/Hand'
-import { useQuickTraining } from '../hooks/useQuickTraining'
+import { type Difficulty, useQuickTraining } from '../hooks/useQuickTraining'
 import styles from './QuickTrainingScreen.module.css'
 
-const DIFFICULTY_OPTIONS = [
-  { value: 2, label: '2' },
-  { value: 3, label: '3' },
-  { value: 4, label: '4' },
-  { value: 5, label: '5' },
+const DIFFICULTY_OPTIONS: Array<{ value: Difficulty; label: string }> = [
+  { value: 'beginner', label: '入門' },
+  { value: 'intermediate', label: '進階' },
+  { value: 'hard', label: '困難' },
+  { value: 'challenge', label: '挑戰' },
 ]
 
 export function QuickTrainingScreen() {
@@ -25,7 +25,7 @@ export function QuickTrainingScreen() {
       </header>
 
       <section className={styles.difficultyBar}>
-        <span className={styles.difficultyLabel}>離聽牌的距離</span>
+        <span className={styles.difficultyLabel}>難度</span>
         <div className={styles.difficultyButtons}>
           {DIFFICULTY_OPTIONS.map((opt) => (
             <button

@@ -1,12 +1,20 @@
 import { useCallback, useMemo, useState } from 'react'
-import { evaluateAllDiscards } from '../../engine/discardEvaluator'
-import { dealAtShanten } from '../../engine/handGenerator'
+import { dealHardQuestion } from '../../engine/handGenerator'
 import { computeShanten } from '../../engine/shanten'
 import { addTile } from '../../engine/tiles'
 import type { DiscardEvaluation, HandCounts, TileKind } from '../../engine/types'
 import { explainDiscard, type DiscardExplanation } from '../../explain/explainDiscard'
 
 export type Phase = 'choosing' | 'feedback'
+
+export type Difficulty = 'beginner' | 'intermediate' | 'hard' | 'challenge'
+
+const DIFFICULTY_CONFIG: Record<Difficulty, { targetShanten: number; minScore: number }> = {
+  beginner: { targetShanten: 3, minScore: 3 },
+  intermediate: { targetShanten: 2, minScore: 5 },
+  hard: { targetShanten: 2, minScore: 7 },
+  challenge: { targetShanten: 1, minScore: 7 },
+}
 
 interface Question {
   hand: HandCounts
@@ -23,18 +31,21 @@ interface Stats {
 }
 
 export function useQuickTraining() {
-  const [difficulty, setDifficulty] = useState(3)
+  const [difficulty, setDifficulty] = useState<Difficulty>('intermediate')
   const [question, setQuestion] = useState<Question | null>(null)
   const [explanation, setExplanation] = useState<DiscardExplanation | null>(null)
   const [stats, setStats] = useState<Stats>({ total: 0, optimal: 0, kept: 0, streak: 0 })
 
-  const deal = useCallback((targetShanten: number) => {
-    const { hand: baseHand, wall } = dealAtShanten(targetShanten)
-    const drawnTile = wall[0]
-    const hand = addTile(baseHand, drawnTile)
+  const deal = useCallback((diff: Difficulty) => {
+    const config = DIFFICULTY_CONFIG[diff]
+    const result = dealHardQuestion({
+      targetShanten: config.targetShanten,
+      minScore: config.minScore,
+    })
+    const drawnTile = result.wall[0]
+    const hand = addTile(result.hand, drawnTile)
     const shanten = computeShanten(hand)
-    const evaluations = evaluateAllDiscards(hand)
-    setQuestion({ hand, drawnTile, shanten, evaluations })
+    setQuestion({ hand, drawnTile, shanten, evaluations: result.evaluations })
     setExplanation(null)
   }, [])
 
@@ -73,7 +84,7 @@ export function useQuickTraining() {
   }, [difficulty, deal])
 
   const changeDifficulty = useCallback(
-    (newDifficulty: number) => {
+    (newDifficulty: Difficulty) => {
       setDifficulty(newDifficulty)
       if (question) {
         setStats({ total: 0, optimal: 0, kept: 0, streak: 0 })
