@@ -44,17 +44,41 @@ describe('explainDiscard', () => {
       discard: E,
       resultingHand: sampleHand(),
       ukeire: { shanten: 0, tiles: [{ kind: s(3), remaining: 4 }, { kind: s(6), remaining: 4 }], totalRemaining: 8 },
+      safety: { level: 'safe', score: 2 },
     }
     const narrow: DiscardEvaluation = {
       discard: s(4),
       resultingHand: sampleHand(),
       ukeire: { shanten: 0, tiles: [{ kind: s(3), remaining: 4 }], totalRemaining: 4 },
+      safety: { level: 'dangerous', score: 0 },
     }
     const results = [wide, narrow]
 
     const explanation = explainDiscard(narrow, results)
     expect(explanation.isOptimal).toBe(false)
     expect(explanation.headline).toContain('不是機會最寬')
+  })
+
+  it('向聽數與進張都相同，但安全性不同時，標題提示風險較高而不是機會較窄', () => {
+    const safer: DiscardEvaluation = {
+      discard: E,
+      resultingHand: sampleHand(),
+      ukeire: { shanten: 0, tiles: [{ kind: s(3), remaining: 4 }, { kind: s(6), remaining: 4 }], totalRemaining: 8 },
+      safety: { level: 'safe', score: 2 },
+    }
+    const riskier: DiscardEvaluation = {
+      discard: m(4),
+      resultingHand: sampleHand(),
+      ukeire: { shanten: 0, tiles: [{ kind: s(3), remaining: 4 }, { kind: s(6), remaining: 4 }], totalRemaining: 8 },
+      safety: { level: 'dangerous', score: 0 },
+    }
+    const results = [safer, riskier]
+
+    const explanation = explainDiscard(riskier, results)
+    expect(explanation.isOptimal).toBe(false)
+    expect(explanation.headline).not.toContain('不是機會最寬')
+    expect(explanation.headline).toContain('風險比較高')
+    expect(explanation.detail).toContain('風險較高')
   })
 
   it('文字不使用「向聽」「進張」這類分析用語，改用聽牌/口語描述', () => {

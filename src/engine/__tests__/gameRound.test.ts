@@ -74,6 +74,31 @@ describe('discardTile', () => {
     expect(next.status).toBe('playing')
     expect(isRoundOver(next)).toBe(false)
   })
+
+  it('向聽數與進張平手時，安全性較低的選項不算 wasOptimal', () => {
+    // 同 discardEvaluator 測試的 1234567萬 情境：丟 1萬(安全) 或 4萬(危險)
+    // 對聽牌進度與機會完全一樣，但只有丟安全的那張才算真正的最佳解。
+    const hand17 = makeCounts([
+      m(1), m(2), m(3), m(4), m(5), m(6), m(7),
+      p(1), p(2), p(3), p(7), p(8), p(9),
+      s(1), s(1), s(5), s(6),
+    ])
+    const state = {
+      status: 'playing' as const,
+      hand: hand17,
+      wall: [],
+      drawnTile: m(4),
+      turnIndex: 0,
+      history: [],
+    }
+
+    const afterDangerous = discardTile(state, m(4))
+    expect(afterDangerous.history[0].wasOptimal).toBe(false)
+    expect(afterDangerous.history[0].keptShanten).toBe(true)
+
+    const afterSafe = discardTile(state, m(1))
+    expect(afterSafe.history[0].wasOptimal).toBe(true)
+  })
 })
 
 describe('declareWin', () => {

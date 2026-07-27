@@ -10,6 +10,8 @@ interface TileProps {
   disabled?: boolean
   /** 標示為「建議優先捨棄的孤張」，在牌外圍加上柔和提示環 */
   suggested?: boolean
+  /** 標示為「玩家這一題選擇捨棄的牌」，用於回饋階段對照 */
+  discarded?: boolean
 }
 
 export function Tile({
@@ -18,11 +20,12 @@ export function Tile({
   highlighted = false,
   disabled = false,
   suggested = false,
+  discarded = false,
 }: TileProps) {
   const { main, suitMark } = getTileGlyph(kind)
   const suit = kindToSuit(kind)
   const label = getTileLabel(kind)
-  const ariaLabel = suggested ? `${label}（建議捨）` : label
+  const ariaLabel = discarded ? `${label}（已捨棄）` : suggested ? `${label}（建議捨）` : label
 
   const face = (
     <svg viewBox="0 0 48 64" className={styles.svg} aria-hidden="true">
@@ -45,6 +48,7 @@ export function Tile({
     highlighted ? styles.highlighted : '',
     disabled ? styles.disabled : '',
     suggested ? styles.suggested : '',
+    discarded ? styles.discarded : '',
   ]
     .filter(Boolean)
     .join(' ')

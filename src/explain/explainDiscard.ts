@@ -36,6 +36,13 @@ function usefulTilesSentence(tiles: UkeireTile[], shanten: number): string {
   return `${lead} ${formatUkeireList(tiles)}`
 }
 
+/** 純統計花色風險的口語描述，不用「現物/筋」等需要棄牌河資訊的日麻用語 */
+function dangerLevelText(level: DiscardEvaluation['safety']['level']): string {
+  if (level === 'safe') return '老頭或字牌，風險較低'
+  if (level === 'dangerous') return '中張，風險較高'
+  return '風險中等'
+}
+
 /**
  * 比較玩家的出牌選擇與系統算出的最佳解，產生中文回饋文字。
  * allEvaluations 必須是 evaluateAllDiscards 排序過的結果（最佳解在最前面）。
@@ -50,7 +57,8 @@ export function explainDiscard(
 
   const isOptimal =
     chosen.ukeire.shanten === best.ukeire.shanten &&
-    chosen.ukeire.totalRemaining === best.ukeire.totalRemaining
+    chosen.ukeire.totalRemaining === best.ukeire.totalRemaining &&
+    chosen.safety.score === best.safety.score
 
   if (isOptimal) {
     return {
@@ -72,10 +80,18 @@ export function explainDiscard(
     }
   }
 
-  const remainingDiff = best.ukeire.totalRemaining - chosen.ukeire.totalRemaining
+  if (chosen.ukeire.totalRemaining !== best.ukeire.totalRemaining) {
+    const remainingDiff = best.ukeire.totalRemaining - chosen.ukeire.totalRemaining
+    return {
+      isOptimal: false,
+      headline: `打出「${chosenLabel}」不是機會最寬的選擇。`,
+      detail: `${chosenShantenText}，${usefulTilesSentence(chosen.ukeire.tiles, chosen.ukeire.shanten)}，共 ${chosen.ukeire.totalRemaining} 張；如果改打「${bestLabel}」，進度一樣，但能用的牌多 ${remainingDiff} 張（共 ${best.ukeire.totalRemaining} 張），機會比較寬。`,
+    }
+  }
+
   return {
     isOptimal: false,
-    headline: `打出「${chosenLabel}」不是機會最寬的選擇。`,
-    detail: `${chosenShantenText}，${usefulTilesSentence(chosen.ukeire.tiles, chosen.ukeire.shanten)}，共 ${chosen.ukeire.totalRemaining} 張；如果改打「${bestLabel}」，進度一樣，但能用的牌多 ${remainingDiff} 張（共 ${best.ukeire.totalRemaining} 張），機會比較寬。`,
+    headline: `打出「${chosenLabel}」的機會跟「${bestLabel}」一樣寬，但風險比較高。`,
+    detail: `${chosenShantenText}，兩張牌打出後聽牌進度和能用的牌都一樣；不過「${chosenLabel}」${dangerLevelText(chosen.safety.level)}，「${bestLabel}」${dangerLevelText(best.safety.level)}，機會相同時建議優先丟風險較低的那張。`,
   }
 }

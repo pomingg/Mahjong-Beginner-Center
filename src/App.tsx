@@ -1,7 +1,7 @@
-import { DiscardTrainingScreen } from './ui/screens/DiscardTrainingScreen'
+import { QuickTrainingScreen } from './ui/screens/QuickTrainingScreen'
 
 function App() {
-  return <DiscardTrainingScreen />
+  return <QuickTrainingScreen />
 }
 
 export default App
