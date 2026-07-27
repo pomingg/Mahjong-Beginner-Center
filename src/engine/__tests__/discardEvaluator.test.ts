@@ -52,6 +52,38 @@ describe('evaluateAllDiscards', () => {
     }
   })
 
+  it('向聽數與進張完全平手時，安全性較高（老頭/字牌）的選項排在前面', () => {
+    // 1234567萬 + 123789筒 + 11條(對) + 56條(搭子聽4/7條)：
+    // 丟 1萬、4萬、7萬 都能讓萬子部分湊成兩組面子，向聽數與進張完全相同，
+    // 但 1萬是老頭（安全）、7萬是普通、4萬是中張（危險），安全性應該影響排序。
+    const hand = makeCounts([
+      m(1), m(2), m(3), m(4), m(5), m(6), m(7),
+      p(1), p(2), p(3), p(7), p(8), p(9),
+      s(1), s(1), s(5), s(6),
+    ])
+    expect(hand.reduce((a, b) => a + b, 0)).toBe(17)
+
+    const results = evaluateAllDiscards(hand)
+    const best = results[0]
+    expect(best.discard).toBe(m(1))
+    expect(best.safety.level).toBe('safe')
+
+    const discard4m = results.find((r) => r.discard === m(4))!
+    const discard7m = results.find((r) => r.discard === m(7))!
+
+    // 三者向聽數與進張張數完全一致，證明效率上是真正的平手
+    for (const r of [best, discard4m, discard7m]) {
+      expect(r.ukeire.shanten).toBe(0)
+      expect(r.ukeire.totalRemaining).toBe(8)
+    }
+    expect(discard4m.safety.level).toBe('dangerous')
+    expect(discard7m.safety.level).toBe('medium')
+
+    // 效率平手時，安全性排序：安全 > 普通 > 危險
+    expect(results.indexOf(best)).toBeLessThan(results.indexOf(discard7m))
+    expect(results.indexOf(discard7m)).toBeLessThan(results.indexOf(discard4m))
+  })
+
   it('每個評估結果打出後手牌都會少一張', () => {
     const hand = makeCounts([
       m(1), m(2), m(3),

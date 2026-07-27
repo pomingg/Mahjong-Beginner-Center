@@ -63,7 +63,8 @@ export function discardTile(state: RoundState, discard: TileKind): RoundState {
     evaluations,
     wasOptimal:
       chosen.ukeire.shanten === best.ukeire.shanten &&
-      chosen.ukeire.totalRemaining === best.ukeire.totalRemaining,
+      chosen.ukeire.totalRemaining === best.ukeire.totalRemaining &&
+      chosen.safety.score === best.safety.score,
     keptShanten: chosen.ukeire.shanten === best.ukeire.shanten,
   }
 

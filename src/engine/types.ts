@@ -23,10 +23,20 @@ export interface UkeireResult {
   totalRemaining: number
 }
 
+/** 純統計花色風險（不模擬對手/棄牌河）：老頭牌與字牌相對安全，中張風險最高 */
+export type DangerLevel = 'safe' | 'medium' | 'dangerous'
+
+export interface DiscardSafety {
+  level: DangerLevel
+  /** 用於排序，越大越安全：safe=2, medium=1, dangerous=0 */
+  score: number
+}
+
 export interface DiscardEvaluation {
   discard: TileKind
   resultingHand: HandCounts
   ukeire: UkeireResult
+  safety: DiscardSafety
 }
 
 export type RoundStatus = 'playing' | 'won' | 'drawn'
